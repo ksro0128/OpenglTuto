@@ -50,16 +50,8 @@ bool Context::Init() {
     if (!image) 
         return false;
     SPDLOG_INFO("image: {}x{}, {} channels", image->GetWidth(), image->GetHeight(), image->GetChannelCount());
-    glGenTextures(1, &m_texture);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // 텍스쳐를 축소할 때의 보간 방법을 설정
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // 텍스쳐를 확대할 때의 보간 방법을 설정
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // 가로 방향으로 텍스쳐가 반복되지 않도록 설정 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // 세로 방향으로 텍스쳐가 반복되지 않도록 설정
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 
-    image->GetWidth(), image->GetHeight(), 0, 
-    GL_RGB, GL_UNSIGNED_BYTE, image->GetData());
+    m_texture = Texture::CreateFromImage(image.get());
 
     return true;
 }

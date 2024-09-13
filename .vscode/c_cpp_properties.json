@@ -2,10 +2,7 @@
   "configurations": [
     {
       "name": "Win32",
-      "includePath": [
-        "${workspaceFolder}/**",
-        "C:/Users/ksro0/Desktop/OpenglTuto/build/install/include"
-      ],
+      "includePath": ["${workspaceFolder}/**"],
       "defines": ["_DEBUG", "UNICODE", "_UNICODE"],
       "windowsSdkVersion": "10.0.22621.0",
       "compilerPath": "cl.exe",

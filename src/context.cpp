@@ -76,22 +76,15 @@ bool Context::Init() {
     m_program = Program::Create("./shader/lighting.vs", "./shader/lighting.fs");
     if (!m_program)
         return false;
+    m_textureProgram = Program::Create("./shader/texture.vs", "./shader/texture.fs");
+    if (!m_textureProgram)
+        return false;
 
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
 
     // auto image = Image::Create(512, 512);
     // image->SetCheckImage(16, 16);
-    auto image = Image::Load("./image/container.jpg");
-    if (!image) 
-        return false;
-    m_texture = Texture::CreateFromImage(image.get());
-
-    auto image2 = Image::Load("./image/awesomeface.png");
-    if (!image2) 
-        return false;
-    m_texture2 = Texture::CreateFromImage(image2.get());
-
     TexturePtr darkGrayTexture = Texture::CreateFromImage(
     Image::CreateSingleColorImage(4, 4,
         glm::vec4(0.2f, 0.2f, 0.2f, 1.0f)).get());
@@ -114,6 +107,9 @@ bool Context::Init() {
     m_box2Material->specular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
     m_box2Material->shininess = 64.0f;
 
+    m_plane = Mesh::CreatePlane();
+    m_windowTexture = Texture::CreateFromImage(
+        Image::Load("./image/blending_transparent_window.png").get());
     return true;
 }
 
@@ -161,7 +157,7 @@ void Context::Render() {
         glm::vec3(-1.3f, 1.0f, -1.5f),
     };
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
 
@@ -229,8 +225,13 @@ void Context::Render() {
     m_box1Material->SetToProgram(m_program.get());
     m_box->Draw(m_program.get());
 
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilMask(0xFF);
+
     modelTransform =
-    glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.7f, 2.0f)) *
+    glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.75f, 2.0f)) *
     glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
     glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
     transform = projection * view * modelTransform;
@@ -238,4 +239,21 @@ void Context::Render() {
     m_program->SetUniform("modelTransform", modelTransform);
     m_box2Material->SetToProgram(m_program.get());
     m_box->Draw(m_program.get());
+
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilMask(0x00);
+    glDisable(GL_DEPTH_TEST);
+    m_simpleProgram->Use();
+    m_simpleProgram->SetUniform("color", glm::vec4(1.0f, 1.0f, 0.5f, 1.0f));
+    m_simpleProgram->SetUniform("transform", transform *
+    glm::scale(glm::mat4(1.0f), glm::vec3(1.05f, 1.05f, 1.05f)));
+    m_box->Draw(m_simpleProgram.get());
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilMask(0xFF);
+
+
+    
 }

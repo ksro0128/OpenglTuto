@@ -35,6 +35,7 @@ public:
         const std::vector<uint32_t>& indices,
         uint32_t primitiveType);
     static MeshUPtr CreateBox();
+    static MeshUPtr CreatePlane();
     void SetMaterial(MaterialPtr material) { m_material = material; }
     MaterialPtr GetMaterial() const { return m_material; }
 

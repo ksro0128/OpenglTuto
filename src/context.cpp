@@ -115,6 +115,24 @@ bool Context::Init() {
     m_plane = Mesh::CreatePlane();
     m_windowTexture = Texture::CreateFromImage(
         Image::Load("./image/blending_transparent_window.png").get());
+
+    auto cubeRight = Image::Load("./image/skybox/right.jpg", false);
+    auto cubeLeft = Image::Load("./image/skybox/left.jpg", false);
+    auto cubeTop = Image::Load("./image/skybox/top.jpg", false);
+    auto cubeBottom = Image::Load("./image/skybox/bottom.jpg", false);
+    auto cubeFront = Image::Load("./image/skybox/front.jpg", false);
+    auto cubeBack = Image::Load("./image/skybox/back.jpg", false);
+    m_cubeTexture = CubeTexture::CreateFromImages({
+        cubeRight.get(),
+        cubeLeft.get(),
+        cubeTop.get(),
+        cubeBottom.get(),
+        cubeFront.get(),
+        cubeBack.get(),
+    });
+    m_skyboxProgram = Program::Create("./shader/skybox.vs", "./shader/skybox.fs");
+    m_envMapProgram = Program::Create("./shader/env_map.vs", "./shader/env_map.fs");
+
     return true;
 }
 
@@ -172,14 +190,22 @@ void Context::Render() {
         glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) *
         glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
-    // auto projection = glm::perspective(glm::radians(45.0f),
-    //     (float)m_width / (float)m_height, 0.01f, 30.0f);
     auto projection = glm::perspective(glm::radians(45.0f),
-        (float)m_width / (float)m_height, 0.1f, 30.0f);
+        (float)m_width / (float)m_height, 0.1f, 1000.0f);
     auto view = glm::lookAt(
         m_cameraPos,
         m_cameraPos + m_cameraFront,
         m_cameraUp);
+
+
+    auto skyboxModelTransform =
+        glm::translate(glm::mat4(1.0), m_cameraPos) *
+        glm::scale(glm::mat4(1.0), glm::vec3(500.0f));
+    m_skyboxProgram->Use();
+    m_cubeTexture->Bind();
+    m_skyboxProgram->SetUniform("skybox", 0);
+    m_skyboxProgram->SetUniform("transform", projection * view * skyboxModelTransform);
+    m_box->Draw(m_skyboxProgram.get());
 
     
     
@@ -222,9 +248,9 @@ void Context::Render() {
     m_box->Draw(m_program.get());
 
     modelTransform =
-    glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.75f, -4.0f)) *
-    glm::rotate(glm::mat4(1.0f), glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-    glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+        glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.75f, -4.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
     transform = projection * view * modelTransform;
     m_program->SetUniform("transform", transform);
     m_program->SetUniform("modelTransform", modelTransform);
@@ -232,14 +258,28 @@ void Context::Render() {
     m_box->Draw(m_program.get());
 
     modelTransform =
-    glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.75f, 2.0f)) *
-    glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-    glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.75f, 2.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
     transform = projection * view * modelTransform;
     m_program->SetUniform("transform", transform);
     m_program->SetUniform("modelTransform", modelTransform);
     m_box2Material->SetToProgram(m_program.get());
     m_box->Draw(m_program.get());
+
+
+    modelTransform =
+        glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.75f, -2.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(40.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+    m_envMapProgram->Use();
+    m_envMapProgram->SetUniform("model", modelTransform);
+    m_envMapProgram->SetUniform("view", view);
+    m_envMapProgram->SetUniform("projection", projection);
+    m_envMapProgram->SetUniform("cameraPos", m_cameraPos);
+    m_cubeTexture->Bind();
+    m_envMapProgram->SetUniform("skybox", 0);
+    m_box->Draw(m_envMapProgram.get());
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

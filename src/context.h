@@ -71,6 +71,11 @@ private:
 
     // framebuffer
     FramebufferUPtr m_framebuffer;
+
+    // cubemap
+    CubeTextureUPtr m_cubeTexture;
+    ProgramUPtr m_skyboxProgram;
+    ProgramUPtr m_envMapProgram;
 };
 
 #endif // __CONTEXT_H__

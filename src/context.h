@@ -51,6 +51,8 @@ private:
     };
     Light m_light;
     bool m_flashLightMode { false };
+    bool m_blinn { false };
+
 
     // material parameter
     MaterialPtr m_planeMaterial;
@@ -83,6 +85,7 @@ private:
     std::vector<glm::vec3> m_grassPos;
     BufferUPtr m_grassPosBuffer;
     VertexLayoutUPtr m_grassInstance;
+
 };
 
 #endif // __CONTEXT_H__

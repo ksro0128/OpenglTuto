@@ -37,6 +37,7 @@ public:
         uint32_t primitiveType);
     static MeshUPtr CreateBox();
     static MeshUPtr CreatePlane();
+    static MeshUPtr CreateSphere(uint32_t latiSegmentCount = 16, uint32_t longiSegmentCount = 32);
     void SetMaterial(MaterialPtr material) { m_material = material; }
     MaterialPtr GetMaterial() const { return m_material; }
 

@@ -39,6 +39,7 @@ class CubeTexture {
 public:
     static CubeTextureUPtr CreateFromImages(const std::vector<Image*>& images);
     static CubeTextureUPtr Create(int width, int height, uint32_t format, uint32_t type = GL_UNSIGNED_BYTE);
+
     ~CubeTexture();
     
     const uint32_t Get() const { return m_texture; }
@@ -48,6 +49,8 @@ public:
     int GetHeight() const { return m_height; }
     uint32_t GetFormat() const { return m_format; }
     uint32_t GetType() const { return m_type; }
+
+    void GenerateMipmap() const;
  
 private:
     CubeTexture() {}
